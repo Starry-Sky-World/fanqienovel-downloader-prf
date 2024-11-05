@@ -24,12 +24,12 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Build with Nuitka (Linux)
+    - name: Build with PyInstaller (Linux)
       run: |
         cd src
-        pip install nuitka
-        nuitka --standalone --onefile main.py
-        mv main.dist/main ../dist/linux_package
+        pip install pyinstaller
+        pyinstaller --onefile main.py
+        mv dist/main ../dist/linux_package
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
@@ -52,12 +52,12 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Build with Nuitka (Windows)
+    - name: Build with PyInstaller (Windows)
       run: |
         cd src
-        pip install nuitka
-        nuitka --standalone --onefile main.py
-        mv main.dist/main.exe ../dist/windows_package.exe
+        pip install pyinstaller
+        pyinstaller --onefile main.py
+        mv dist/main.exe ../dist/windows_package.exe
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
@@ -80,12 +80,12 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Build with Nuitka (MacOS)
+    - name: Build with PyInstaller (MacOS)
       run: |
         cd src
-        pip install nuitka
-        nuitka --standalone --onefile main.py
-        mv main.dist/main ../dist/macos_package
+        pip install pyinstaller
+        pyinstaller --onefile main.py
+        mv dist/main ../dist/macos_package
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
