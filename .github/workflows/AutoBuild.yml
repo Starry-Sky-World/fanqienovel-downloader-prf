@@ -1,4 +1,4 @@
-name: Build, Package, and Release
+name: Build and Release for Windows
 
 on:
   push:
@@ -9,34 +9,6 @@ on:
       - main
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Install dependencies
-      run: pip install -r requirements.txt
-
-    - name: Build with PyInstaller (Linux)
-      run: |
-        cd src
-        pip install pyinstaller
-        pyinstaller --onefile main.py
-        mv dist/main ../dist/linux_package
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: linux-package
-        path: dist/linux_package
-
   build-windows:
     runs-on: windows-latest
 
@@ -57,6 +29,7 @@ jobs:
         cd src
         pip install pyinstaller
         pyinstaller --onefile main.py
+        mkdir ../dist
         mv dist/main.exe ../dist/windows_package.exe
 
     - name: Upload artifact
@@ -65,36 +38,8 @@ jobs:
         name: windows-package
         path: dist/windows_package.exe
 
-  build-macos:
-    runs-on: macos-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Install dependencies
-      run: pip install -r requirements.txt
-
-    - name: Build with PyInstaller (MacOS)
-      run: |
-        cd src
-        pip install pyinstaller
-        pyinstaller --onefile main.py
-        mv dist/main ../dist/macos_package
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: macos-package
-        path: dist/macos_package
-
   create-release:
-    needs: [build-linux, build-windows, build-macos]
+    needs: build-windows
     runs-on: ubuntu-latest
 
     steps:
@@ -112,4 +57,4 @@ jobs:
       run: |
         DATE=$(date +'%Y%m%d')
         TAG="AutoBuild_$DATE"
-        gh release create $TAG dist/linux_package dist/windows_package.exe dist/macos_package --title "AutoBuild $DATE" --notes "Automated build and packaging"
+        gh release create $TAG dist/windows_package.exe --title "AutoBuild $DATE" --notes "Automated build and packaging"
