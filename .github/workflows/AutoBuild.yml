@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,26 +27,85 @@ jobs:
     - name: Change to src directory
       run: cd src
 
-    - name: Package for Windows
+    - name: Build with Nuitka
       run: |
-        python setup.py sdist --formats=zip
-        mv dist/*.zip dist/windows_package.zip
+        pip install nuitka
+        nuitka --standalone --onefile main.py
+        mv main.bin ../dist/linux_package.bin
 
-    - name: Package for Linux
-      run: |
-        python setup.py sdist --formats=gztar
-        mv dist/*.tar.gz dist/linux_package.tar.gz
-
-    - name: Package for MacOS
-      run: |
-        python setup.py sdist --formats=zip
-        mv dist/*.zip dist/macos_package.zip
-
-    - name: Upload artifacts
+    - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: packages
-        path: dist/*
+        name: linux-package
+        path: dist/linux_package.bin
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Change to src directory
+      run: cd src
+
+    - name: Build with Nuitka
+      run: |
+        pip install nuitka
+        nuitka --standalone --onefile main.py
+        mv main.exe ../dist/windows_package.exe
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows-package
+        path: dist/windows_package.exe
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Change to src directory
+      run: cd src
+
+    - name: Build with Nuitka
+      run: |
+        pip install nuitka
+        nuitka --standalone --onefile main.py
+        mv main ../dist/macos_package
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: macos-package
+        path: dist/macos_package
+
+  create-release:
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
     - name: Configure Git
       run: |
@@ -59,4 +118,4 @@ jobs:
       run: |
         DATE=$(date +'%Y%m%d')
         TAG="AutoBuild_$DATE"
-        gh release create $TAG dist/windows_package.zip dist/linux_package.tar.gz dist/macos_package.zip --title "AutoBuild $DATE" --notes "Automated build and packaging"
+        gh release create $TAG dist/linux_package.bin dist/windows_package.exe dist/macos_package --title "AutoBuild $DATE" --notes "Automated build and packaging"
