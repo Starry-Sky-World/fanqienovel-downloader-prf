@@ -1,0 +1,62 @@
+name: Build, Package, and Release
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Change to src directory
+      run: cd src
+
+    - name: Package for Windows
+      run: |
+        python setup.py sdist --formats=zip
+        mv dist/*.zip dist/windows_package.zip
+
+    - name: Package for Linux
+      run: |
+        python setup.py sdist --formats=gztar
+        mv dist/*.tar.gz dist/linux_package.tar.gz
+
+    - name: Package for MacOS
+      run: |
+        python setup.py sdist --formats=zip
+        mv dist/*.zip dist/macos_package.zip
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: packages
+        path: dist/*
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "GithubAction"
+        git config --global user.email "GithubAction@github.com"
+
+    - name: Create Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        DATE=$(date +'%Y%m%d')
+        TAG="AutoBuild_$DATE"
+        gh release create $TAG dist/windows_package.zip dist/linux_package.tar.gz dist/macos_package.zip --title "AutoBuild $DATE" --notes "Automated build and packaging"
