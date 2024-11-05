@@ -24,20 +24,18 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Change to src directory
-      run: cd src
-
-    - name: Build with Nuitka
+    - name: Build with Nuitka (Linux)
       run: |
+        cd src
         pip install nuitka
         nuitka --standalone --onefile main.py
-        mv main.bin ../dist/linux_package.bin
+        mv main.dist/main ../dist/linux_package
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: linux-package
-        path: dist/linux_package.bin
+        path: dist/linux_package
 
   build-windows:
     runs-on: windows-latest
@@ -54,14 +52,12 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Change to src directory
-      run: cd src
-
-    - name: Build with Nuitka
+    - name: Build with Nuitka (Windows)
       run: |
+        cd src
         pip install nuitka
         nuitka --standalone --onefile main.py
-        mv main.exe ../dist/windows_package.exe
+        mv main.dist/main.exe ../dist/windows_package.exe
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
@@ -84,14 +80,12 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Change to src directory
-      run: cd src
-
-    - name: Build with Nuitka
+    - name: Build with Nuitka (MacOS)
       run: |
+        cd src
         pip install nuitka
         nuitka --standalone --onefile main.py
-        mv main ../dist/macos_package
+        mv main.dist/main ../dist/macos_package
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
@@ -118,4 +112,4 @@ jobs:
       run: |
         DATE=$(date +'%Y%m%d')
         TAG="AutoBuild_$DATE"
-        gh release create $TAG dist/linux_package.bin dist/windows_package.exe dist/macos_package --title "AutoBuild $DATE" --notes "Automated build and packaging"
+        gh release create $TAG dist/linux_package dist/windows_package.exe dist/macos_package --title "AutoBuild $DATE" --notes "Automated build and packaging"
